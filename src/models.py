@@ -1,29 +1,58 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
+from datetime import datetime
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class User(Base):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    email = Column(String(120), unique=True, nullable=False)
+    password = Column(String(80), nullable=False)
+    first_name = Column(String(80), nullable=False)
+    last_name = Column(String(80), nullable=False)
+    subscription_date = Column(DateTime, default=datetime.utcnow)
+    
+    favorites = relationship('Favorite', backref='user', lazy=True)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+class Planet(Base):
+    __tablename__ = 'planet'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    name = Column(String(120), nullable=False)
+    climate = Column(String(80), nullable=False)
+    population = Column(String(80), nullable=False)
+
+class Character(Base):
+    __tablename__ = 'character'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    gender = Column(String(80), nullable=False)
+    species = Column(String(80), nullable=False)
+
+class Vehicle(Base):
+    __tablename__ = 'vehicle'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    model = Column(String(120), nullable=False)
+    manufacturer = Column(String(120), nullable=False)
+    crew = Column(String(80), nullable=False)
+
+class Favorite(Base):
+    __tablename__ = 'favorite'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    planet_id = Column(Integer, ForeignKey('planet.id'), nullable=True)
+    character_id = Column(Integer, ForeignKey('character.id'), nullable=True)
+    vehicle_id = Column(Integer, ForeignKey('vehicle.id'), nullable=True)
+
+    planet = relationship('Planet', backref='favorited_by', lazy=True)
+    character = relationship('Character', backref='favorited_by', lazy=True)
+    vehicle = relationship('Vehicle', backref='favorited_by', lazy=True)
+
 
     def to_dict(self):
         return {}
